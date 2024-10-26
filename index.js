@@ -1,39 +1,57 @@
-const fs = require('fs');
-const path = require('path');
+const express = require('express');
+const multer = require('multer');
 const XLSX = require('xlsx');
 
-// File paths
-const inputFilePath = path.join(__dirname, 'json_data.txt'); // Change 'data.txt' if the input file is named differently
+const app = express();
+const upload = multer(); // No file storage configuration (keeps files in memory)
 
-// Function to convert JSON array to Excel and save with a timestamp
-function convertJsonToExcel() {
+// Endpoint to upload text file and return Excel file
+app.use(express.static('public'));
+
+// app.get('/',(req,res) => {
+//     console.log('hiiii')
+//     res.status(200).json({ error: 'Failed to process the file' });
+// })
+app.post('/convert-to-excel', upload.single('file'), (req, res) => {
+    // res.status(500).json({ error: 'Failed to process the file' });
   try {
-    // Read the JSON array data from the text file
-    const jsonData = JSON.parse(fs.readFileSync(inputFilePath, 'utf-8'));
-
-    // Check if the data is an array
-    if (!Array.isArray(jsonData)) {
-      console.error('Data in file is not a valid JSON array');
-      return;
+    // Ensure file is provided and read its contents
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Create a new workbook and worksheet from the JSON data
+    const jsonData = JSON.parse(req.file.buffer.toString('utf-8'));
+
+    // Check if data is a valid JSON array
+    if (!Array.isArray(jsonData)) {
+      return res.status(400).json({ error: 'File content is not a valid JSON array' });
+    }
+
+    // Convert JSON data to Excel format in memory
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(jsonData);
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
 
-    // Generate the filename with timestamp and title
+    // Generate the Excel file as a buffer
+    const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+    // Set response headers and send the file as attachment
     const timestamp = new Date().toISOString().replace(/[-:.]/g, '');
-    const outputFilePath = path.join(__dirname, `member_${timestamp}.xlsx`);
+    const filename = `member_${timestamp}.xlsx`;
 
-    // Write the workbook to the Excel file
-    XLSX.writeFile(workbook, outputFilePath);
-
-    console.log(`Excel file created successfully: ${outputFilePath}`);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(excelBuffer);
   } catch (error) {
-    console.error('Error converting JSON to Excel:', error);
+    console.error('Error processing file:', error);
+    res.status(500).json({ error: 'Failed to process the file' });
   }
-}
+});
 
-// Run the conversion
-convertJsonToExcel();
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(3000, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+
