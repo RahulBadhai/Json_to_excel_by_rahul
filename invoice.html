@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wallet Log</title>
+  <style>
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      line-height: 1.6;
+    }
+    .container {
+      width: 60%;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #000;
+    }
+    .header, .section, .table, .diff-section {
+      margin-bottom: 20px;
+    }
+    .header {
+      text-align: right;
+    }
+    h2 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: right;
+    }
+    th {
+      text-align: left;
+    }
+    .separator {
+      margin: 20px 0;
+      border-bottom: 2px solid black;
+    }
+    .diff-section {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <p><strong>Wallet Log</strong> &nbsp;&nbsp; 7738294531</p>
+    </div>
+
+    <div class="section">
+      <p><strong>Wallet Balance</strong> &nbsp;&nbsp; 3,001.00</p>
+    </div>
+
+    <div class="separator"></div>
+
+    <h2>Merchant Log</h2>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Merchant Name</th>
+          <th>Total Debit</th>
+          <th>Total Credit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Ebixcash UPI</td>
+          <td>0.00</td>
+          <td>3,501.00</td>
+        </tr>
+        <tr>
+          <td>Ebixcash UPI</td>
+          <td>2,200.00</td>
+          <td>0.00</td>
+        </tr>
+        <tr>
+          <td>WAL NUPAY LOAD</td>
+          <td>0.00</td>
+          <td>1,700.00</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td><strong>Total</strong></td>
+          <td>2,200.00</td>
+          <td>5,201.00</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="diff-section">
+      <p><strong>Diff: </strong> 3,001.00</p>
+    </div>
+
+    <div class="separator"></div>
+
+    <h2>CBS Log</h2>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>CBS Tag</th>
+          <th>Debit</th>
+          <th>Credit</th>
+          <th>Pending</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Total amt</td>
+          <td>2,200.00</td>
+          <td>3,501.00</td>
+          <td>0.00</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="diff-section">
+      <p><strong>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Upload</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #495057;
+        }
+        h1 {
+            color: #343a40;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 500;
+        }
+        form {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            transition: box-shadow 0.3s;
+        }
+        form:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+        input[type="file"] {
+            margin-bottom: 20px;
+            border: 2px solid #ced4da;
+            border-radius: 5px;
+            padding: 10px;
+            width: calc(100% - 22px);
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input[type="file"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+        button:disabled {
+            background-color: #6c757d; /* Gray color when disabled */
+            cursor: not-allowed;
+        }
+        .dont-click-message {
+            color: #dc3545; /* Red color for the message */
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .progress-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            display: none;
+        }
+        svg {
+            transform: rotate(-90deg);
+        }
+        circle {
+            fill: none;
+            stroke-width: 10;
+        }
+        .background {
+            stroke: #e0e0e0;
+        }
+        .progress {
+            stroke: #007bff;
+            transition: stroke-dasharray 0.4s;
+        }
+        .message {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <h1>Balance Importing</h1>
+        <input type="file" name="file" accept=".txt" required />
+        <button id="uploadButton" type="submit">Upload</button>
+        <div class="dont-click-message" id="dontClickMessage" style="display: none;">Don't click wait file Processing...!   </div>
+        <div id="progressContainer" style="display: none;">
+            <svg width="100" height="100">
+                <circle class="progress" cx="50" cy="50" r="45" fill="none" stroke="#4caf50" stroke-width="10" stroke-dasharray="283" stroke-dashoffset="283"></circle>
+            </svg>
+        </div>
+        <div id="progress">
+            <h2>Progress</h2>
+            <p id="countDisplay">Processed Entries: 0</p>
+        </div>
+        <div id="uploadMessage"></div>
+    </form>
+
+    <script>
+
+        
+        document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const progressContainer = document.getElementById('progressContainer');
+            const progressCircle = document.querySelector('.progress');
+            const messageDiv = document.getElementById('uploadMessage');
+            const uploadButton = document.getElementById('uploadButton');
+            const dontClickMessage = document.getElementById('dontClickMessage');
+    
+            // Disable the upload button and change its color
+            uploadButton.disabled = true;
+            dontClickMessage.style.display = 'block'; // Show don't click message
+    
+            // Show the progress bar
+            progressContainer.style.display = 'block';
+            messageDiv.textContent = '';
+            let processedCount = 0; // Track processed entries
+    
+            try {
+                const response = await fetch('/convert-to-excel', {
+                    method: 'POST',
+                    body: formData,
+                });
+    
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    a.download = `Json_to_excel_${timestamp}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    messageDiv.textContent = 'Upload successful!';
+                    messageDiv.style.color = '#28a745';
+                } else {
+                    messageDiv.textContent = 'Error uploading file.';
+                    messageDiv.style.color = '#dc3545';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                messageDiv.textContent = 'Error uploading file.';
+                messageDiv.style.color = '#dc3545';
+            } finally {
+                // Hide the progress bar
+                progressContainer.style.display = 'none';
+                progressCircle.style.strokeDashoffset = '283'; // Reset progress
+    
+                // Re-enable the upload button and hide the message after a short delay
+                setTimeout(() => {
+                    uploadButton.disabled = false;
+                    dontClickMessage.style.display = 'none'; // Hide don't click message
+                }, 3000); // Re-enable button after 3 seconds
+            }
+    
+            // Socket.IO connection for real-time updates
+            const socket = io();
+    
+            socket.on('entryProcessed', function(data) {
+    $('#countDisplay').text(`Processed Entries: ${data.count}`);
+});
+        });
+    </script>
+</body>
+</html>
